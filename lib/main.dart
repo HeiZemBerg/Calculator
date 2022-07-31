@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:math_expressions/math_expressions.dart';
 import 'buttons.dart';
 
 void main() {
@@ -18,11 +18,14 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  var userQuestion = '';
+  var userAnswer = '';
+
   final List<String> buttons = [
     'AC',
-    '()',
     '%',
     '/',
+    '←',
     '7',
     '8',
     '9',
@@ -30,12 +33,12 @@ class _MyAppState extends State<MyApp> {
     '4',
     '5',
     '6',
-    '-',
+    '–',
     '1',
     '2',
     '3',
     '+',
-    '+/-',
+    '+/–',
     '0',
     '.',
     '=',
@@ -49,7 +52,26 @@ class _MyAppState extends State<MyApp> {
       body: Column(
         children: [
           Expanded(
-            child: Container(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  alignment: Alignment.centerRight,
+                  child: Text(userQuestion,
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 25)),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    userAnswer,
+                    style: const TextStyle(color: Colors.white, fontSize: 25),
+                  ),
+                )
+              ],
+            ),
           ),
           Expanded(
             flex: 2,
@@ -65,18 +87,77 @@ class _MyAppState extends State<MyApp> {
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 4),
                   itemBuilder: (BuildContext context, int index) {
-                    return myButton(
-                      buttonText: buttons[index],
-                      color: const Color(0xff272b33),
-                      textColor: operatorColor(buttons[index]) == 1
-                          ? const Color(0xffec7878)
-                          : (operatorColor(buttons[index]) == 2
-                          ? const Color(0xff278478)
-                          : Colors.white),
-                      textSize: isOperator(buttons[index])?35:27,
-
-                      /*isOperator(buttons[index]) ? 33: 25,*/
-                    );
+                    if (index == 0) {
+                      return myButton(
+                        buttonTapped: () {
+                          setState(() {
+                            userQuestion = '';
+                          });
+                        },
+                        buttonText: buttons[index],
+                        color: const Color(0xff272b33),
+                        textColor: operatorColor(buttons[index]) == 1
+                            ? const Color(0xffec7878)
+                            : (operatorColor(buttons[index]) == 2
+                                ? const Color(0xff278478)
+                                : Colors.white),
+                        textSize: isOperator(buttons[index]) ? 35 : 27,
+                      );
+                    }
+                    else if (index == 3) {
+                      return myButton(
+                        buttonTapped: () {
+                          setState(() {
+                            if(userQuestion.isNotEmpty) {
+                              userQuestion = userQuestion.substring(
+                                  0, userQuestion.length - 1);
+                            }
+                          });
+                        },
+                        buttonText: buttons[index],
+                        color: const Color(0xff272b33),
+                        textColor: operatorColor(buttons[index]) == 1
+                            ? const Color(0xffec7878)
+                            : (operatorColor(buttons[index]) == 2
+                                ? const Color(0xff278478)
+                                : Colors.white),
+                        textSize: isOperator(buttons[index]) ? 35 : 27,
+                      );
+                    }
+                    else if (index == buttons.length - 1) {
+                      return myButton(
+                        buttonTapped: () {
+                          setState(() {
+                            equalPressed();
+                          });
+                        },
+                        buttonText: buttons[index],
+                        color: const Color(0xff272b33),
+                        textColor: operatorColor(buttons[index]) == 1
+                            ? const Color(0xffec7878)
+                            : (operatorColor(buttons[index]) == 2
+                            ? const Color(0xff278478)
+                            : Colors.white),
+                        textSize: isOperator(buttons[index]) ? 35 : 27,
+                      );
+                    }
+                    else {
+                      return myButton(
+                        buttonTapped: () {
+                          setState(() {
+                            userQuestion += buttons[index];
+                          });
+                        },
+                        buttonText: buttons[index],
+                        color: const Color(0xff272b33),
+                        textColor: operatorColor(buttons[index]) == 1
+                            ? const Color(0xffec7878)
+                            : (operatorColor(buttons[index]) == 2
+                                ? const Color(0xff278478)
+                                : Colors.white),
+                        textSize: isOperator(buttons[index]) ? 35 : 27,
+                      );
+                    }
                   }),
             ),
           )
@@ -93,12 +174,25 @@ class _MyAppState extends State<MyApp> {
   }
 
   int operatorColor(String x) {
-    if (x == '/' || x == 'x' || x == '-' || x == '+' || x == '=') {
+    if (x == '' || x == 'x' || x == '–' || x == '+' || x == '=') {
       return 1;
     }
-    if (x == '%' || x == '()' || x == 'AC') {
+    if (x == '%' || x == '/' || x == 'AC') {
       return 2;
     }
     return 3;
+  }
+
+  void equalPressed() {
+    String finalQuestion = userQuestion;
+    finalQuestion = finalQuestion.replaceAll('x', '*');
+    finalQuestion = finalQuestion.replaceAll('–', '-');
+
+    Parser p = Parser();
+    Expression exp = p.parse((finalQuestion));
+    ContextModel cm = ContextModel();
+    num eval = exp.evaluate(EvaluationType.REAL, cm);
+
+    userAnswer = eval.toString();
   }
 }
