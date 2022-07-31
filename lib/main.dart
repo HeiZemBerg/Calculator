@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:math_expressions/math_expressions.dart';
-import 'buttons.dart';
+import 'command/buttons.dart';
+import 'command/func.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -20,11 +20,15 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   var userQuestion = '';
   var userAnswer = '';
+  var secondNumber = 0;
+
+  TextStyle normalEqualTextStyle = const TextStyle(
+      fontSize: 50, color: Colors.grey, fontWeight: FontWeight.bold);
 
   final List<String> buttons = [
     'AC',
     '%',
-    '/',
+    '÷',
     '←',
     '7',
     '8',
@@ -56,18 +60,19 @@ class _MyAppState extends State<MyApp> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.only(
+                      left: 20, top: 70, right: 20, bottom: 20),
                   alignment: Alignment.centerRight,
                   child: Text(userQuestion,
                       style:
-                          const TextStyle(color: Colors.white, fontSize: 25)),
+                          const TextStyle(color: Colors.white, fontSize: 30)),
                 ),
                 Container(
                   padding: const EdgeInsets.all(20),
                   alignment: Alignment.centerRight,
                   child: Text(
                     userAnswer,
-                    style: const TextStyle(color: Colors.white, fontSize: 25),
+                    style: normalEqualTextStyle,
                   ),
                 )
               ],
@@ -83,82 +88,131 @@ class _MyAppState extends State<MyApp> {
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30))),
               child: GridView.builder(
-                  itemCount: buttons.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4),
-                  itemBuilder: (BuildContext context, int index) {
-                    if (index == 0) {
-                      return myButton(
-                        buttonTapped: () {
-                          setState(() {
-                            userQuestion = '';
-                          });
-                        },
-                        buttonText: buttons[index],
-                        color: const Color(0xff272b33),
-                        textColor: operatorColor(buttons[index]) == 1
-                            ? const Color(0xffec7878)
-                            : (operatorColor(buttons[index]) == 2
-                                ? const Color(0xff278478)
-                                : Colors.white),
-                        textSize: isOperator(buttons[index]) ? 35 : 27,
-                      );
-                    }
-                    else if (index == 3) {
-                      return myButton(
-                        buttonTapped: () {
-                          setState(() {
-                            if(userQuestion.isNotEmpty) {
+                itemCount: buttons.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4),
+                itemBuilder: (BuildContext context, int index) {
+                  if (index == 0) {
+                    return myButton(
+                      buttonTapped: () {
+                        setState(() {
+                          resetAll();
+                        });
+                      },
+                      buttonText: buttons[index],
+                      color: const Color(0xff272b33),
+                      textColor: operatorColor(buttons[index]) == 1
+                          ? const Color(0xffec7878)
+                          : (operatorColor(buttons[index]) == 2
+                              ? const Color(0xff278478)
+                              : Colors.white),
+                      textSize: isOperator(buttons[index]) ? 35 : 27,
+                    );
+                  } else if (index == 3) {
+                    return myButton(
+                      buttonTapped: () {
+                        setState(() {
+                          if (userQuestion.isNotEmpty) {
+                            if (isOperator(
+                                userQuestion[userQuestion.length - 1])) {
+                              secondNumber = 0;
+                              userAnswer = '';
+                            }
+                            if(userQuestion[userQuestion.length - 2]=='-'){
                               userQuestion = userQuestion.substring(
                                   0, userQuestion.length - 1);
                             }
-                          });
-                        },
-                        buttonText: buttons[index],
-                        color: const Color(0xff272b33),
-                        textColor: operatorColor(buttons[index]) == 1
-                            ? const Color(0xffec7878)
-                            : (operatorColor(buttons[index]) == 2
-                                ? const Color(0xff278478)
-                                : Colors.white),
-                        textSize: isOperator(buttons[index]) ? 35 : 27,
-                      );
-                    }
-                    else if (index == buttons.length - 1) {
-                      return myButton(
-                        buttonTapped: () {
-                          setState(() {
-                            equalPressed();
-                          });
-                        },
-                        buttonText: buttons[index],
-                        color: const Color(0xff272b33),
-                        textColor: operatorColor(buttons[index]) == 1
-                            ? const Color(0xffec7878)
-                            : (operatorColor(buttons[index]) == 2
-                            ? const Color(0xff278478)
-                            : Colors.white),
-                        textSize: isOperator(buttons[index]) ? 35 : 27,
-                      );
-                    }
-                    else {
-                      return myButton(
-                        buttonTapped: () {
-                          setState(() {
-                            userQuestion += buttons[index];
-                          });
-                        },
-                        buttonText: buttons[index],
-                        color: const Color(0xff272b33),
-                        textColor: operatorColor(buttons[index]) == 1
-                            ? const Color(0xffec7878)
-                            : (operatorColor(buttons[index]) == 2
-                                ? const Color(0xff278478)
-                                : Colors.white),
-                        textSize: isOperator(buttons[index]) ? 35 : 27,
-                      );
-                    }
-                  }),
+                            userQuestion = userQuestion.substring(
+                                0, userQuestion.length - 1);
+                          }
+                          if (userQuestion.isEmpty) {
+                            resetAll();
+                          }
+                        });
+                      },
+                      buttonText: buttons[index],
+                      color: const Color(0xff272b33),
+                      textColor: operatorColor(buttons[index]) == 1
+                          ? const Color(0xffec7878)
+                          : (operatorColor(buttons[index]) == 2
+                              ? const Color(0xff278478)
+                              : Colors.white),
+                      textSize: isOperator(buttons[index]) ? 35 : 27,
+                    );
+                  } else if (index == buttons.length - 1) {
+                    return myButton(
+                      buttonTapped: () {
+                        setState(() {
+                          if (userQuestion.isNotEmpty) {
+                            userQuestion = equalPressed(userQuestion);
+                            userAnswer = '';
+                          }
+                        });
+                      },
+                      buttonText: buttons[index],
+                      color: const Color(0xff272b33),
+                      textColor: operatorColor(buttons[index]) == 1
+                          ? const Color(0xffec7878)
+                          : (operatorColor(buttons[index]) == 2
+                              ? const Color(0xff278478)
+                              : Colors.white),
+                      textSize: isOperator(buttons[index]) ? 35 : 27,
+                    );
+                  } else if (index == 16) {
+                    return myButton(
+                      buttonTapped: () {
+                        setState(() {
+                          if (userQuestion.isNotEmpty) {
+                            String finalNumber = userQuestion;
+                            finalNumber += '* -1';
+                            userQuestion = equalPressed(finalNumber);
+                          }
+                        });
+                      },
+                      buttonText: buttons[index],
+                      color: const Color(0xff272b33),
+                      textColor: operatorColor(buttons[index]) == 1
+                          ? const Color(0xffec7878)
+                          : (operatorColor(buttons[index]) == 2
+                              ? const Color(0xff278478)
+                              : Colors.white),
+                      textSize: isOperator(buttons[index]) ? 35 : 27,
+                    );
+                  } else {
+                    return myButton(
+                      buttonTapped: () {
+                        setState(() {
+                          if (userQuestion.isEmpty &&
+                              isOperator(buttons[index])) {
+                            userQuestion = '';
+                          } else {
+                            userQuestion == '0'
+                                ? (buttons[index] == '.'
+                                    ? userQuestion += buttons[index]
+                                    : userQuestion = buttons[index])
+                                : userQuestion += buttons[index];
+                          }
+                          if (userQuestion.isNotEmpty &&
+                              isOperator(buttons[index]) &&
+                              secondNumber == 0) {
+                            secondNumber = 1;
+                          } else if (secondNumber == 1) {
+                            userAnswer = equalPressed(userQuestion);
+                          }
+                        });
+                      },
+                      buttonText: buttons[index],
+                      color: const Color(0xff272b33),
+                      textColor: operatorColor(buttons[index]) == 1
+                          ? const Color(0xffec7878)
+                          : (operatorColor(buttons[index]) == 2
+                              ? const Color(0xff278478)
+                              : Colors.white),
+                      textSize: isOperator(buttons[index]) ? 35 : 27,
+                    );
+                  }
+                },
+              ),
             ),
           )
         ],
@@ -166,33 +220,9 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  bool isOperator(String x) {
-    if (x == '/' || x == 'x' || x == '-' || x == '+' || x == '=' || x == '%') {
-      return true;
-    }
-    return false;
-  }
-
-  int operatorColor(String x) {
-    if (x == '' || x == 'x' || x == '–' || x == '+' || x == '=') {
-      return 1;
-    }
-    if (x == '%' || x == '/' || x == 'AC') {
-      return 2;
-    }
-    return 3;
-  }
-
-  void equalPressed() {
-    String finalQuestion = userQuestion;
-    finalQuestion = finalQuestion.replaceAll('x', '*');
-    finalQuestion = finalQuestion.replaceAll('–', '-');
-
-    Parser p = Parser();
-    Expression exp = p.parse((finalQuestion));
-    ContextModel cm = ContextModel();
-    num eval = exp.evaluate(EvaluationType.REAL, cm);
-
-    userAnswer = eval.toString();
+  void resetAll() {
+    userAnswer = '';
+    userQuestion = '';
+    secondNumber = 0;
   }
 }
