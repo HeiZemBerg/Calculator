@@ -118,12 +118,12 @@ class _MyAppState extends State<MyApp> {
                               secondNumber = 0;
                               userAnswer = '';
                             }
-                            if(userQuestion[userQuestion.length - 2]=='-'){
+                            if(userQuestion.length>=2&&userQuestion[userQuestion.length - 2]=='-'){
                               userQuestion = userQuestion.substring(
                                   0, userQuestion.length - 1);
                             }
-                            userQuestion = userQuestion.substring(
-                                0, userQuestion.length - 1);
+                              userQuestion = userQuestion.substring(
+                                  0, userQuestion.length - 1);
                           }
                           if (userQuestion.isEmpty) {
                             resetAll();
